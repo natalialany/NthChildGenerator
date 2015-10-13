@@ -3,75 +3,67 @@
 (function() {
 
     var checkboxes = document.getElementById('checkboxes');
-    var amountField = document.getElementById('amount');
-    var length = document.getElementById('length');
     var results = document.getElementById('results');
     var currentAmount = 0;
 
     var updateArray = function() {
-        console.log('update');
+        var resultArray = [];
+
+        return resultArray;
     }
 
-    function createNodeCheckboxInput(id) {
-        var input = document.createElement('input');
-        input.type = "checkbox";
-        input.classList.add("checkbox");
-        input.id = "c" + id;
-        return input;
-    }
-    function createNodeCheckboxLabel(id) {
-        var label = document.createElement('label');
-        label.classList.add('label');
-        label.setAttribute('for', "c" + id);
-        label.innerHTML = id;
-        return label;
-    }
-    function createNodeCheckboxGroup() {
-        var newDiv = document.createElement('div');
-        newDiv.classList.add("checkbox-group");
-        return newDiv;
-    }
-
-    function addCheckbox() {
+    function addCheckbox(eventCallback) {
         var id = currentAmount + 1;
         currentAmount++;
 
-        var newDiv = createNodeCheckboxGroup();
-        var input = createNodeCheckboxInput(id);
-        var label = createNodeCheckboxLabel(id);
+        var newDiv = createNode({ element: 'div', class: 'checkbox-group' });
+        var input = createNode({ element: 'input', type: 'checkbox', class: 'checkbox', id: 'c' + id });
+        var label = createNode({ element: 'label', class: 'label', attr: { name: 'for', value: 'c' + id }, innerHTML: id });
 
         newDiv.appendChild(input);
         newDiv.appendChild(label);
         checkboxes.appendChild(newDiv);
 
-        input.addEventListener('change', function() {
-            updateArray();
-        });
+        input.addEventListener('change', eventCallback);
     }
-
     function removeCheckbox() {
         if (checkboxes.childNodes.length>0) {
             checkboxes.removeChild(checkboxes.lastChild);
             currentAmount--;
         }
-        updateArray();
+    }
+    function clearCheckboxes() {
+        var c = checkboxes.querySelectorAll('.checkbox');
+        for (var i = 0, max = c.length; i < max; i++) {
+            c[i].checked = false;
+        }
+    }
+
+    function initAmountField(eventCallback, amount) {
+        var amountField = document.getElementById('amount');
+        amountField.value = amount;
+        amountField.addEventListener('input', function() {
+            (this.value > currentAmount) ? addCheckbox(eventCallback) : removeCheckbox();
+            eventCallback();
+        });
+    }
+    function initClearBtn(eventCallback) {
+        var clearBtn = document.getElementById('clear');
+        clearBtn.addEventListener('click', function() {
+            clearCheckboxes();
+            eventCallback();
+        })
     }
 
     function init(config) {
 
-        //create markup with checkboxes
         var length = config.itemCount;
         while(length--) {
-            addCheckbox();
+            addCheckbox(updateArray);
         }
 
-        //amountField - init
-        amountField.value = config.itemCount;
-
-        //amountField - add event listener
-        amountField.addEventListener('input', function() {
-            (this.value > currentAmount) ? addCheckbox() : removeCheckbox();
-        });
+        initAmountField(updateArray, config.itemCount);
+        initClearBtn(updateArray);
     }
 
     init({
@@ -80,3 +72,23 @@
     });
 
 }());
+
+function createNode(conf) {
+    var node = document.createElement(conf.element);
+    if (conf.type !== undefined) {
+        node.type = conf.type;
+    }
+    if (conf.class !== undefined) {
+        node.classList.add(conf.class);
+    }
+    if (conf.attr !== undefined) {
+        node.setAttribute(conf.attr.name, conf.attr.value);
+    }
+    if (conf.innerHTML !== undefined) {
+        node.innerHTML = conf.innerHTML;
+    }
+    if (conf.id !== undefined) {
+        node.id = conf.id;
+    }
+    return node;
+}
