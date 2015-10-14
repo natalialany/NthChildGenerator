@@ -7,9 +7,24 @@
     var currentAmount = 0;
 
     var updateArray = function() {
-        var resultArray = [];
+        var nodeArray = Array.prototype.slice.call(checkboxes.querySelectorAll('.checkbox')); // converts NodeList to Array
+        return nodeArray.filter(function(current) {
+            return (current.checked);
+        }).map(function(current) {
+            return parseInt(current.value, 10);
+        });
+    }
 
-        return resultArray;
+    var updateResults = function() {
+        var checkedArray = updateArray();
+
+        var res = getResults(checkedArray, currentAmount);
+
+        results.innerHTML = '';
+        for (var i=0; i<res.length; i++) {
+            var newDiv = createNode({ element: 'div', innerHTML: res[i]});
+            results.appendChild(newDiv);
+        }
     }
 
     function addCheckbox(eventCallback) {
@@ -17,7 +32,7 @@
         currentAmount++;
 
         var newDiv = createNode({ element: 'div', class: 'checkbox-group' });
-        var input = createNode({ element: 'input', type: 'checkbox', class: 'checkbox', id: 'c' + id });
+        var input = createNode({ element: 'input', type: 'checkbox', class: 'checkbox', id: 'c' + id, value: id });
         var label = createNode({ element: 'label', class: 'label', attr: { name: 'for', value: 'c' + id }, innerHTML: id });
 
         newDiv.appendChild(input);
@@ -59,11 +74,11 @@
 
         var length = config.itemCount;
         while(length--) {
-            addCheckbox(updateArray);
+            addCheckbox(updateResults);
         }
 
-        initAmountField(updateArray, config.itemCount);
-        initClearBtn(updateArray);
+        initAmountField(updateResults, config.itemCount);
+        initClearBtn(updateResults);
     }
 
     init({
@@ -90,5 +105,11 @@ function createNode(conf) {
     if (conf.id !== undefined) {
         node.id = conf.id;
     }
+    if (conf.value !== undefined) {
+        node.value = conf.value;
+    }
     return node;
 }
+
+
+
