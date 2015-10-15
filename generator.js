@@ -43,7 +43,8 @@ function getResults(checkedArray, amount) {
                 return ':nth-child(odd)';
             },
             condition: function() {
-                return (length>0 && regularDifference()<=2 && array[0]===1 && distanceAtEnd()<=2);
+                var series = findRegularSeries();
+                return (length>0 && series.diff === 2 && series.fromStart && series.fromEnd && array[0] === 1);
             }
         },
         nthEven: {
@@ -51,7 +52,8 @@ function getResults(checkedArray, amount) {
                 return ':nth-child(even)';
             },
             condition: function() {
-                return (length>0 && regularDifference()<=2 && array[0]===2 && distanceAtEnd()<=2);
+                var series = findRegularSeries();
+                return (length>0 && series.diff === 2 && series.fromStart && series.fromEnd && array[0] === 2);
             }
         }
     }
@@ -63,6 +65,35 @@ function getResults(checkedArray, amount) {
             }
         }
     }
+
+    function findRegularSeries() {
+        var series;
+
+        for (var i = 0; i < array.length; i++) {
+
+            series = series || {};
+            series.items = series.items || [];
+
+            if (series.items.length > 0) {
+                var currentDiff = array[i] - array[i-1];
+                var requiredDiff = series.diff || currentDiff;
+                if (currentDiff === requiredDiff && array[i-1] === series.items[series.items.length-1]) {
+                    series.items.push(array[i]);
+                }
+                series.diff = series.diff || requiredDiff;
+            } else {
+                series.items.push(array[i]);
+            }
+        }
+        if (series && series.items.length > 0) {
+            series.fromStart = (series.items[0] <= series.diff);
+            console.log(amount, ' ', series.items[series.items.length-1]);
+            series.fromEnd = (amount - series.items[series.items.length-1] < series.diff)
+        }
+        console.log(series);
+        return series;
+    }
+    findRegularSeries();
 
     function regularDifference(diff) {
         var diff = 0;
@@ -83,7 +114,7 @@ function getResults(checkedArray, amount) {
     function distanceAtEnd() {
         return amount - array[array.length - 1];
     }
-    console.log(amount);
+    //console.log(amount);
 
     //More than one items
     if (array.length > 1) {
