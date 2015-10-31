@@ -16,14 +16,26 @@
     }
 
     var updateResults = function() {
+        var i;
         var checkedArray = updateArray();
 
-        var res = getResults(checkedArray, currentAmount);
+        var returnedObject = getResults(checkedArray, currentAmount);
+        var res = returnedObject.resultArray;
+        var processed = returnedObject.processedCheckboxes;
 
+        /* Reset */
         results.innerHTML = '';
-        for (var i=0; i<res.length; i++) {
+        resetHightlight();
+
+        /* Update string results */
+        for (i=0; i<res.length; i++) {
             var newDiv = createNode({ element: 'div', innerHTML: res[i]});
             results.appendChild(newDiv);
+        }
+
+        /* Hightlight checkboxes that have been processed */
+        for (i=0; i<processed.length; i++) {
+            highlightCheckbox(processed[i]);
         }
     }
 
@@ -51,6 +63,16 @@
         var c = checkboxes.querySelectorAll('.checkbox');
         for (var i = 0, max = c.length; i < max; i++) {
             c[i].checked = false;
+        }
+    }
+    function highlightCheckbox(id) {
+        var c = checkboxes.querySelector('#c' + id);
+        c.classList.add('processed');
+    }
+    function resetHightlight() {
+        var c = checkboxes.querySelectorAll('.checkbox');
+        for (var i = 0, max = c.length; i < max; i++) {
+            c[i].classList.remove('processed');
         }
     }
 

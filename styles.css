@@ -52,6 +52,9 @@ h1, h2, h3, h4, h5, h6 {
   background: #35A1B4;
   box-shadow: inset 0px 1px 7px #B8E9F2 , 0px 1px 1px rgba(0,0,0,0.5);
 }
+.checkbox-group input[type="checkbox"].processed + label:before {
+  background: green;
+}
 
 .btn {
   display: inline-block;

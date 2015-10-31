@@ -1,59 +1,95 @@
 function getResults(checkedArray, amount) {
 
-    var resultArray = [];
+    var returnedObject = {
+        resultArray: [],
+        processedCheckboxes: []
+    }
+
 
     var length = checkedArray.length;
     var array = checkedArray;
+    var arrayFirstItem = array[0];
+    var arrayLastItem = array[array.length-1];
 
     var rules = {
-        firstChild: {
+        //firstChild: {
+        //    value: function() {
+        //        return ':first-child';
+        //    },
+        //    condition: function() {
+        //        return (length === 1 && arrayFirstItem === 1);
+        //    }
+        //},
+        //lastChild: {
+        //    value: function() {
+        //        return ':last-child';
+        //    },
+        //    condition: function() {
+        //        return (length === 1 && arrayFirstItem === amount);
+        //    }
+        //},
+        //nthChild: {
+        //    value: function() {
+        //        return ':nth-child(' + (arrayFirstItem) + ')';
+        //    },
+        //    condition: function() {
+        //        return (length === 1);
+        //    }
+        //},
+        //nthLastChild: {
+        //    value: function() {
+        //        return ':nth-last-child(' + (amount - arrayFirstItem + 1) + ')';
+        //    },
+        //    condition: function() {
+        //        return (length === 1);
+        //    }
+        //},
+        //nthOdd: {
+        //    value: function() {
+        //        return ':nth-child(odd)';
+        //    },
+        //    condition: function() {
+        //        var series = findRegularSeries();
+        //        return (length>0 && series.diff === 2 && series.fromStart && series.fromEnd && arrayFirstItem === 1);
+        //    }
+        //},
+        //nthEven: {
+        //    value: function() {
+        //        return ':nth-child(even)';
+        //    },
+        //    condition: function() {
+        //        var series = findRegularSeries();
+        //        return (length>0 && series.diff === 2 && series.fromStart && series.fromEnd && arrayFirstItem === 2);
+        //    }
+        //}
+        //},
+        nthChildManyStart: {
             value: function() {
-                return ':first-child';
-            },
-            condition: function() {
-                return (length === 1 && array[0] === 1);
-            }
-        },
-        lastChild: {
-            value: function() {
-                return ':last-child';
-            },
-            condition: function() {
-                return (length === 1 && array[0] === amount);
-            }
-        },
-        nthChild: {
-            value: function() {
-                return ':nth-child(' + (array[0]) + ')';
-            },
-            condition: function() {
-                return (length === 1);
-            }
-        },
-        nthLastChild: {
-            value: function() {
-                return ':nth-last-child(' + (amount - array[0] + 1) + ')';
-            },
-            condition: function() {
-                return (length === 1);
-            }
-        },
-        nthOdd: {
-            value: function() {
-                return ':nth-child(odd)';
+                var series = findRegularSeries();
+                var density = (series.diff === 1) ? '' : series.diff;
+
+                var result_left = '';
+                var result_right = '';
+
+                /* Left */
+                if (!series.fromStart) {
+                    var direction_left = '';
+                    var hook_left = series.items[0];
+                    result_left = ':nth-child(' + direction_left + density + 'n+' + hook_left + ')';
+                }
+
+                /* Right */
+                if (!series.fromEnd) {
+                    var direction_right = '-';
+                    var hook_right = series.items[series.items.length - 1];
+                    result_right = ':nth-child(' + direction_right + density + 'n+' + hook_right + ')';
+                }
+
+                return result_left + result_right;
             },
             condition: function() {
                 var series = findRegularSeries();
-                return (length>0 && series.diff === 2 && series.fromStart && series.fromEnd && array[0] === 1);
-            }
-        },
-        nthEven: {
-            value: function() {
-                return ':nth-child(even)';
-            },
-            condition: function() {
-                var series = findRegularSeries();
-                return (length>0 && series.diff === 2 && series.fromStart && series.fromEnd && array[0] === 2);
+                return (length>1);
             }
         }
     }
@@ -61,7 +97,7 @@ function getResults(checkedArray, amount) {
     for (var rule in rules) {
         if (rules.hasOwnProperty(rule)) {
             if (rules[rule].condition()) {
-                resultArray.push(rules[rule].value());
+                returnedObject.resultArray.push(rules[rule].value());
             }
         }
     }
@@ -86,74 +122,19 @@ function getResults(checkedArray, amount) {
             }
         }
         if (series && series.items.length > 0) {
-            series.fromStart = (series.items[0] <= series.diff);
-            console.log(amount, ' ', series.items[series.items.length-1]);
-            series.fromEnd = (amount - series.items[series.items.length-1] < series.diff)
+            var seriesFirstItem = series.items[0];
+            var seriesLastItem = series.items[series.items.length-1];
+            series.fromStart = (seriesFirstItem <= series.diff  && seriesFirstItem === arrayFirstItem);
+            series.fromEnd = (amount - seriesLastItem < series.diff && seriesLastItem === arrayLastItem)
         }
-        console.log(series);
+        if (series) {
+            console.log('Series: ' +  series.items);
+            for (var i=0; i<series.items.length; i++) {
+                returnedObject.processedCheckboxes.push(series.items[i]);
+            }
+        }
         return series;
     }
-    findRegularSeries();
 
-    function regularDifference(diff) {
-        var diff = 0;
-        if (array.length > 0) {
-            diff = array[1] - array[0];
-        }
-        for (var i = 1; i < array.length; i++) {
-            if (array[i] - array[i - 1] !== diff) {
-                return 0;
-            }
-        }
-        return diff;
-    }
-
-    function distanceAtStart() {
-        return array[0];
-    }
-    function distanceAtEnd() {
-        return amount - array[array.length - 1];
-    }
-    //console.log(amount);
-
-    //More than one items
-    if (array.length > 1) {
-
-        //Regular
-        var diff = array[1] - array[0];
-        var diffFirst = array[0];
-        var diffLast = amount - array[array.length - 1];
-
-        var endGood = false;
-        var startGood = false;
-        var regular = true;
-        for (var i = 1; i < checkedArray.length; i++) {
-            if (checkedArray[i] - checkedArray[i - 1] !== diff) {
-                regular = false;
-            }
-        }
-
-        if (regular) {
-            if (diffFirst <= diff) {
-                startGood = true;
-            }
-            if (diffLast <= diff - 1) {
-                endGood = true;
-            }
-        }
-
-        if (startGood || endGood) {
-            var density = (diff > 1) ? diff : '';
-            var direction = (endGood) ? '' : '-';
-            var hook = (endGood) ? array[0] : array[array.length - 1];
-            if (diff !== hook) {
-                resultArray.push(':nth-child(' + direction + density + 'n+' + hook + ')');
-            } else {
-                resultArray.push(':nth-child(' + direction + density + 'n)');
-            }
-        }
-
-    }
-
-    return resultArray;
+    return returnedObject;
 };
